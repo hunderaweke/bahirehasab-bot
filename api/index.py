@@ -1,8 +1,8 @@
 import os
 import hashlib
 import asyncio
-import datetime
 import logging
+import postcard_drawer
 from io import BytesIO
 from bahire_hasab import BahireHasab
 from fastapi import FastAPI
@@ -109,14 +109,38 @@ async def send_post_card(query: types.CallbackQuery):
         chat_id=query.from_user.id, message_id=query.message.message_id
     )
     if query.data == "template_1":
-        await bot.send_message(
-            chat_id=query.from_user.id, text="Selected choice number 1"
-        )
-        await bot.send_message(chat_id=query.from_user.id, text=query.message.text)
+        selected_template = "images/template-1.png"
     else:
-        await bot.send_message(
-            chat_id=query.from_user.id, text="Selected choice number 2"
-        )
+        selected_template = "images/template-2.png"
+    sender_name = query.from_user.full_name
+    receiver_name = ""
+    await bot.send_message(
+        chat_id=query.from_user.id,
+        text=f"💁 Send the sender's name please or press /skip \n የሚልከውን ስም ያስገቡ \n Default: {sender_name}",
+    )
+    STATES = {"SENDER_NAME_STATE": 1, "RECEIVER_NAME_STATE": 2}
+    current_state = STATES["SENDER_NAME_STATE"]
+
+    @dp.message_handler()
+    async def handle_names(message: Message):
+        nonlocal sender_name, receiver_name, current_state
+        if current_state == STATES["SENDER_NAME_STATE"]:
+            if message.text != "/skip":
+                sender_name = message.text
+            await bot.send_message(
+                chat_id=query.from_user.id,
+                text=f"💁 Send the Recevier's name please or press.\n ✉ የሚላክለትን ሰው ስም ያስገቡ፡ ",
+            )
+        elif current_state == STATES["RECEIVER_NAME_STATE"]:
+            receiver_name = message.text
+
+    img = postcard_drawer.draw_post_card(
+        sender_name=sender_name,
+        reciever_name=receiver_name,
+        template_name=selected_template,
+    )
+    await bot.send_photo(chat_id=query.from_user.id, photo=img)
+    return
 
 
 @dp.inline_handler()
