@@ -3,6 +3,7 @@ import hashlib
 import asyncio
 import logging
 import postcard_drawer
+from fastapi import FastAPI
 from bahire_hasab import BahireHasab
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
@@ -20,12 +21,12 @@ from aiogram.utils.executor import start_webhook
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 TOKEN = os.environ.get("TOKEN")
-WEBHOOK_HOST = "https://bc02-196-189-233-4.ngrok-free.app"
+WEBHOOK_HOST = "https://b939-196-189-233-4.ngrok-free.app"
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 WEBAPP_HOST = "localhost"
 WEBAPP_PORT = 7000
-
+app = FastAPI()
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 store = {}
@@ -39,6 +40,9 @@ class SenderReceiverStates(StatesGroup):
     RECEIVER_NAME = State()
     SEND_IMAGE = State()
 
+@app.get('/')
+def index():
+    return {"Message":"Post card service working"}
 
 @dp.message_handler(commands=["start", "help"])
 async def start(msg: Message):
@@ -248,16 +252,16 @@ async def on_shutdown(dp: Dispatcher):
     logging.warning("Good bye!")
 
 
-# asyncio.run(
-#     start_webhook(
-#         dispatcher=dp,
-#         webhook_path=WEBHOOK_PATH,
-#         on_startup=on_startup,
-#         on_shutdown=on_shutdown,
-#         skip_updates=True,
-#         host=WEBAPP_HOST,
-#         port=WEBAPP_PORT,
-#     )
-# )
+asyncio.run(
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
+)
 
-asyncio.run(dp.start_polling(fast=True))
+# asyncio.run(dp.start_polling(fast=True))
