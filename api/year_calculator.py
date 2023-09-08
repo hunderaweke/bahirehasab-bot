@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageColor
+from PIL import Image, ImageDraw, ImageFont
 from bahire_hasab import BahireHasab
 
 
@@ -32,3 +32,11 @@ def _bh(year: int):
     ጾመ ድህነት፡
 
     """
+    img = Image.open("images/bahire-hasab-bg.png")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("fonts/zelan.ttf", size=45)
+    draw.text((100, 100), table, (0, 0, 0), font=font)
+    img.show()
+
+
+_bh(2015)
