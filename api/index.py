@@ -2,8 +2,9 @@ import os
 import hashlib
 import asyncio
 import logging
-import postcard_drawer
 from fastapi import FastAPI
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 from bahire_hasab import BahireHasab
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
@@ -44,6 +45,22 @@ class SenderReceiverStates(StatesGroup):
 def index():
     return {"Message":"Post card service working"}
 
+
+def draw_post_card(sender_name: str, reciever_name: str, template_name: str):
+    if template_name == "images/template-1.png":
+        color = (109, 46, 0)
+    elif template_name == "images/template-2.png":
+        color = (255, 227, 80)
+    img = Image.open(template_name)
+    bio = BytesIO()
+    bio.name = "drawn-template.png"
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("fonts/noto.ttf", size=25)
+    draw.text((201, 63), sender_name, color, font=font)
+    draw.text((490, 337), reciever_name, color, font=font)
+    img.save(bio, "PNG")
+    bio.seek(0)
+    return bio
 @dp.message_handler(commands=["start", "help"])
 async def start(msg: Message):
     keyboards = [
@@ -208,7 +225,7 @@ async def send_image(query: types.CallbackQuery, state: FSMContext):
     receiver_name = store["receiver_name"]
     sender_name = store["sender_name"]
     selected_template = store["selected_template"]
-    img = postcard_drawer.draw_post_card(
+    img = draw_post_card(
         sender_name=sender_name,
         reciever_name=receiver_name,
         template_name=selected_template,
