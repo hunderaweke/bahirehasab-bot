@@ -269,16 +269,16 @@ async def on_shutdown(dp: Dispatcher):
     logging.warning("Good bye!")
 
 
-asyncio.run(
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=True,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
-)
+# asyncio.run(
+#     start_webhook(
+#         dispatcher=dp,
+#         webhook_path=WEBHOOK_PATH,
+#         on_startup=on_startup,
+#         on_shutdown=on_shutdown,
+#         skip_updates=True,
+#         host=WEBAPP_HOST,
+#         port=WEBAPP_PORT,
+#     )
+# )
 
 # asyncio.run(dp.start_polling(fast=True))
