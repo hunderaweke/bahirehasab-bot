@@ -31,7 +31,7 @@ storage = MemoryStorage()
 store = {}
 dp = Dispatcher(bot, storage=storage)
 dp.middleware.setup(LoggingMiddleware())
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class SenderReceiverStates(StatesGroup):
@@ -39,9 +39,10 @@ class SenderReceiverStates(StatesGroup):
     RECEIVER_NAME = State()
     SEND_IMAGE = State()
 
-@app.get('/')
+
+@app.get("/")
 def index():
-    return {"Message":"Post card service working"}
+    return {"Message": "Post card service working"}
 
 
 def draw_post_card(sender_name: str, reciever_name: str, template_name: str):
@@ -59,6 +60,8 @@ def draw_post_card(sender_name: str, reciever_name: str, template_name: str):
     img.save(bio, "PNG")
     bio.seek(0)
     return bio
+
+
 @dp.message_handler(commands=["start", "help"])
 async def start(msg: Message):
     keyboards = [
@@ -194,26 +197,27 @@ async def get_receiver_name(message: Message):
     )
 
 
-
 @dp.callback_query_handler(text="cancel", state=SenderReceiverStates.SEND_IMAGE)
 async def cancel(query: types.CallbackQuery, state: FSMContext):
     keyboards = [
-    [
-        InlineKeyboardButton("📅 የዘመኑ ማውጫ", callback_data="calc_other"),
-        InlineKeyboardButton("💡 እገዛ ላማግኘት", callback_data="help"),
-    ],
-    [
-        InlineKeyboardButton("🇪🇹 የዘንድሮ ማውጫ", callback_data="this_year"),
-        InlineKeyboardButton("✨  የሌላ ዓመት ማውጫ", callback_data="calc_other"),
-    ],
-    [InlineKeyboardButton("🥳 ፖስተ ካርድ ለመላከ", callback_data="post_card")],
+        [
+            InlineKeyboardButton("📅 የዘመኑ ማውጫ", callback_data="calc_other"),
+            InlineKeyboardButton("💡 እገዛ ላማግኘት", callback_data="help"),
+        ],
+        [
+            InlineKeyboardButton("🇪🇹 የዘንድሮ ማውጫ", callback_data="this_year"),
+            InlineKeyboardButton("✨  የሌላ ዓመት ማውጫ", callback_data="calc_other"),
+        ],
+        [InlineKeyboardButton("🥳 ፖስተ ካርድ ለመላከ", callback_data="post_card")],
     ]
     await query.answer("Canceled Successfully!")
     await bot.delete_message(
         chat_id=query.from_user.id, message_id=query.message.message_id
     )
     await bot.send_message(
-        chat_id=query.from_user.id,text="😇 ዳግም ለመሞከር 🥳  ፡  ",reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboards)
+        chat_id=query.from_user.id,
+        text="😇 ዳግም ለመሞከር 🥳  ፡  ",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboards),
     )
     await state.finish()
 
@@ -255,25 +259,26 @@ async def this_year_inline(query: InlineQuery):
     await bot.answer_inline_query(query.id, results=items, cache_time=1)
 
 
-async def on_startup(dp: Dispatcher):
-    await bot.set_webhook(WEBHOOK_URL)
+# async def on_startup(dp: Dispatcher):
+#     await bot.set_webhook(WEBHOOK_URL)
 
 
-async def on_shutdown(dp: Dispatcher):
-    logging.warning("Shutting down ....")
-    await bot.delete_webhook()
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    logging.warning("Good bye!")
-
+# async def on_shutdown(dp: Dispatcher):
+#     logging.warning("Shutting down ....")
+#     await bot.delete_webhook()
+#     await dp.storage.close()
+#     await dp.storage.wait_closed()
+#     logging.warning("Good bye!")
 
 asyncio.run(
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=True,
-    )
+    dp.start_polling()
 )
-
+# asyncio.run(
+#     start_webhook(
+#         dispatcher=dp,
+#         webhook_path=WEBHOOK_PATH,
+#         on_startup=on_startup,
+#         on_shutdown=on_shutdown,
+#         skip_updates=True,
+#     )
+# )
